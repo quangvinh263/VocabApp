@@ -25,4 +25,8 @@ public class Vocabulary {
 
     @Column(columnDefinition = "TEXT") // Dùng TEXT vì câu ví dụ có thể rất dài
     private String exampleSentence;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_id", nullable = false)
+    private User user;
 }
