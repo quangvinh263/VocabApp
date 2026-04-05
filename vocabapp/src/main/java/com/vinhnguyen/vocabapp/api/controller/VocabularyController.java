@@ -2,13 +2,16 @@ package com.vinhnguyen.vocabapp.api.controller;
 
 import com.vinhnguyen.vocabapp.application.dto.VocabRequest;
 import com.vinhnguyen.vocabapp.domain.entity.User;
+import com.vinhnguyen.vocabapp.domain.entity.UserVocabProgress;
 import com.vinhnguyen.vocabapp.domain.entity.Vocabulary;
 import com.vinhnguyen.vocabapp.infrastructure.repository.UserRepository;
+import com.vinhnguyen.vocabapp.infrastructure.repository.UserVocabProgressRepository;
 import com.vinhnguyen.vocabapp.infrastructure.repository.VocabularyRepository;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDate;
 import java.util.List;
 
 @RestController
@@ -17,10 +20,12 @@ public class VocabularyController {
 
     private final VocabularyRepository vocabularyRepository;
     private final UserRepository userRepository;
+    private final UserVocabProgressRepository userVocabProgressRepository;
 
-    public VocabularyController(VocabularyRepository vocabularyRepository, UserRepository userRepository) {
+    public VocabularyController(VocabularyRepository vocabularyRepository, UserRepository userRepository, UserVocabProgressRepository userVocabProgressRepository) {
         this.vocabularyRepository = vocabularyRepository;
         this.userRepository = userRepository;
+        this.userVocabProgressRepository = userVocabProgressRepository;
     }
 
     // --- HÀM BÍ MẬT: Tự động trích xuất User từ Vòng tay JWT ---
@@ -34,7 +39,9 @@ public class VocabularyController {
     @PostMapping
     public ResponseEntity<?> addVocabulary(@RequestBody VocabRequest request) {
         User currentUser = getCurrentUser(); // Biết ngay ai đang gọi API không cần truyền ID
-
+        if (vocabularyRepository.existsByWordIgnoreCaseAndUser(request.getWord(), currentUser)) {
+            return ResponseEntity.badRequest().body("Từ vựng '" + request.getWord() + "' đã tồn tại trong kho của bạn!");
+        }
         Vocabulary vocab = Vocabulary.builder()
                 .word(request.getWord())
                 .meaning(request.getMeaning())
@@ -43,8 +50,20 @@ public class VocabularyController {
                 .user(currentUser)
                 .build();
 
-        vocabularyRepository.save(vocab);
-        return ResponseEntity.ok("Đã thêm từ vựng thành công!");
+        Vocabulary savedVocab = vocabularyRepository.save(vocab);
+
+        // TỰ ĐỘNG TẠO TIẾN ĐỘ HỌC (Để xuất hiện trong Nhiệm vụ hôm nay)
+        UserVocabProgress progress = UserVocabProgress.builder()
+                .user(currentUser)
+                .vocabulary(savedVocab)
+                .status("NEW")
+                .easeFactor(2.5)
+                .intervalDays(0)
+                .nextReviewDate(LocalDate.now()) // Hẹn luôn hôm nay học
+                .build();
+        userVocabProgressRepository.save(progress);
+
+        return ResponseEntity.ok("Đã thêm từ vựng và tự động đưa vào danh sách học hôm nay!");
     }
 
     // 2. XEM DANH SÁCH TỪ VỰNG (GET)

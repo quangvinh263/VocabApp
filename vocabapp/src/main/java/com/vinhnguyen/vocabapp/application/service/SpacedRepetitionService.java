@@ -6,6 +6,7 @@ import com.vinhnguyen.vocabapp.infrastructure.repository.UserVocabProgressReposi
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
+import java.util.List;
 
 @Service
 public class SpacedRepetitionService {
@@ -61,5 +62,10 @@ public class SpacedRepetitionService {
 
         // 4. Lưu ngược lại xuống Database
         return progressRepository.save(progress);
+    }
+
+    // Thêm vào class SpacedRepetitionService
+    public List<UserVocabProgress> getDailyTasks(Long userId) {
+        return progressRepository.findTodaysTasks(userId, LocalDate.now());
     }
 }
