@@ -19,22 +19,22 @@ public class StudyService {
      * Lấy thống kê học tập dựa trên Status trong Entity UserVocabProgress
      */
     public StudyStatsResponse getStats(Long userId) {
-        // 1. Tổng số từ vựng hiện có trong hệ thống
-        long totalVocabs = vocabularyRepository.count();
+        // 1. Chỉ đếm những từ thuộc về user này
+        long totalVocabsOfUser = vocabularyRepository.countByUserId(userId);
 
-        // 2. Số từ đã đạt trạng thái MASTERED
+        // 2. Số từ đã MASTERED
         long mastered = userVocabProgressRepository.countByUserIdAndStatus(userId, "MASTERED");
 
-        // 3. Tổng số từ đã có tiến độ (không phân biệt status)
+        // 3. Tổng số từ có tiến độ
         long totalLearned = userVocabProgressRepository.countByUserId(userId);
 
-        // 4. Số từ đang học (Đã bắt đầu nhưng chưa MASTERED)
-        long learning = totalLearned - mastered;
+        // 4. Số từ mới
+        long newWords = userVocabProgressRepository.countByUserIdAndStatus(userId, "NEW");
 
-        // 5. Số từ mới (Chưa bao giờ xuất hiện trong bảng progress)
-        long newWords = totalVocabs - totalLearned;
+        // 5. Số từ đang học
+        long learning = totalLearned - mastered - newWords;
 
-        return new StudyStatsResponse(totalVocabs, learning, mastered, newWords);
+        return new StudyStatsResponse(totalVocabsOfUser, learning, mastered, newWords);
     }
 
     // Sau này các hàm xử lý thuật toán SM-2 (update intervalDays, nextReviewDate) sẽ nằm ở đây

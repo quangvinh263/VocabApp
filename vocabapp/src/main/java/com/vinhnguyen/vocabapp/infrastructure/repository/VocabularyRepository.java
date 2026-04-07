@@ -14,4 +14,7 @@ public interface VocabularyRepository extends JpaRepository<Vocabulary, Long> {
 
     //Kiểm tra từ vựng đã tồn tại chưa (bỏ qua viết hoa/thường)
     boolean existsByWordIgnoreCaseAndUser(String word, User user);
+
+    // Đếm từ
+    long countByUserId(Long userId);
 }

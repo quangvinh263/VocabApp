@@ -57,10 +57,9 @@ public class StudyController {
 
     @GetMapping("/stats")
     public ResponseEntity<StudyStatsResponse> getStats(Authentication authentication) {
-        // Giả sử bạn đã có logic lấy UserID từ Authentication (JWT)
-        // Nếu chưa, hãy tạm để một ID cứng (ví dụ: 1L) để test giao diện trước
-        Long userId = 1L;
-
-        return ResponseEntity.ok(studyService.getStats(userId));
+        String username = SecurityContextHolder.getContext().getAuthentication().getName();
+        User user = userRepository.findByUsername(username)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+        return ResponseEntity.ok(studyService.getStats(user.getId()));
     }
 }

@@ -51,6 +51,8 @@ public class SpacedRepetitionService {
             if (quality == 4) {
                 currentEase += 0.15;
             }
+            if (currentInterval >=30)
+                progress.setStatus("MASTER");
             progress.setStatus("REVIEWING");
         }
 
