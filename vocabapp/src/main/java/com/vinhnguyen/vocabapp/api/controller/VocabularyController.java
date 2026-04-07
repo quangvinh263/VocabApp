@@ -103,7 +103,7 @@ public class VocabularyController {
         if (!vocab.getUser().getUsername().equals(SecurityContextHolder.getContext().getAuthentication().getName())) {
             return ResponseEntity.status(403).body("Bạn không có quyền xóa từ vựng của người khác!");
         }
-
+        userVocabProgressRepository.deleteByVocabularyId(id);
         vocabularyRepository.delete(vocab);
         return ResponseEntity.ok("Đã xóa từ vựng!");
     }
